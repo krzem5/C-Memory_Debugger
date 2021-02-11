@@ -1,10 +1,15 @@
 #ifndef __MEMORY_DEBUGGER_H__
 #define __MEMORY_DEBUGGER_H__
+
+
+
 #ifndef NDEBUG
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdint.h>
+#define WARN_MEMCPY_TO_UNKNOWN 1
+#define WARN_MEMCPY_FROM_UNKNOWN 1
 #define assert(ex) \
 	do{ \
 		if (!(ex)){ \
@@ -22,9 +27,6 @@
 		_mem_check_allocated_(__FILE__,__LINE__,__func__); \
 		return (r); \
 	} while(0)
-#undef return
-#define WARN_MEMCPY_TO_UNKNOWN 0
-#define WARN_MEMCPY_FROM_UNKNOWN 0
 
 
 
@@ -63,14 +65,6 @@ struct _Node{
 };
 uint8_t _er=0;
 uint8_t _m_err=0;
-
-
-
-void _mem_check_allocated_(const char* f,unsigned int ln,const char* fn);
-
-
-
-void _mem_check_all_allocated_(void);
 
 
 
@@ -249,6 +243,49 @@ void* _get(void* p,const char* msg,uint8_t wu,const char* f,unsigned int ln,cons
 		}
 	}
 	return n;
+}
+
+
+
+void _mem_check_all_allocated_(void){
+	if (_m_err==1){
+		return;
+	}
+	_check_heap(NULL,0,NULL);
+	unsigned long pc=0;
+	unsigned long long int bc=0;
+	struct _Node* n=&_head;
+	while (n->n!=NULL){
+		if (n->ptr!=NULL){
+			pc++;
+			bc+=n->sz;
+			if (n->t==1){
+				printf("%s (0x%016llx): Pointer not Freed at The End of Program! (%s:%u (%s))\n",n->t_nm,(unsigned long long int)n->ptr,n->f,n->ln,n->fn);
+			}
+			else{
+				printf("0x%016llx: Pointer not Freed at The End of Program! (%s:%u (%s))\n",(unsigned long long int)n->ptr,n->f,n->ln,n->fn);
+			}
+			_dump((unsigned char*)n->ptr+8,n->sz);
+		}
+		n=n->n;
+	}
+	if (pc>0){
+		printf("%lu Pointer(s) (%llu byte(s)) Not Freed, Aborting.\n",pc,bc);
+	}
+	else{
+		printf("Everything Freed!");
+	}
+}
+
+
+
+void _mem_check_allocated_(const char* f,unsigned int ln,const char* fn){
+	if (_er==0){
+		atexit(_mem_check_all_allocated_);
+		signal(SIGABRT,_mem_abrt_);
+		_er=1;
+	}
+	_check_heap(f,ln,fn);
 }
 
 
@@ -509,49 +546,6 @@ void _mem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const ch
 	n->t_nm=p_nm;
 	for (size_t i=0;i<n->sz;i++){
 		*((char*)n->t_v+i)=*((char*)n->ptr+i+8);
-	}
-}
-
-
-
-void _mem_check_allocated_(const char* f,unsigned int ln,const char* fn){
-	if (_er==0){
-		atexit(_mem_check_all_allocated_);
-		signal(SIGABRT,_mem_abrt_);
-		_er=1;
-	}
-	_check_heap(f,ln,fn);
-}
-
-
-
-void _mem_check_all_allocated_(void){
-	if (_m_err==1){
-		return;
-	}
-	_check_heap(NULL,0,NULL);
-	unsigned long pc=0;
-	unsigned long long int bc=0;
-	struct _Node* n=&_head;
-	while (n->n!=NULL){
-		if (n->ptr!=NULL){
-			pc++;
-			bc+=n->sz;
-			if (n->t==1){
-				printf("%s (0x%016llx): Pointer not Freed at The End of Program! (%s:%u (%s))\n",n->t_nm,(unsigned long long int)n->ptr,n->f,n->ln,n->fn);
-			}
-			else{
-				printf("0x%016llx: Pointer not Freed at The End of Program! (%s:%u (%s))\n",(unsigned long long int)n->ptr,n->f,n->ln,n->fn);
-			}
-			_dump((unsigned char*)n->ptr+8,n->sz);
-		}
-		n=n->n;
-	}
-	if (pc>0){
-		printf("%lu Pointer(s) (%llu byte(s)) Not Freed, Aborting.\n",pc,bc);
-	}
-	else{
-		printf("Everything Freed!");
 	}
 }
 
