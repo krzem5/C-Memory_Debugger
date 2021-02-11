@@ -1,4 +1,5 @@
 #include <memory_debugger.h>
+#ifndef NDEBUG
 #undef return
 #undef malloc
 #undef calloc
@@ -540,3 +541,4 @@ void _mem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const ch
 		*((char*)n->t_v+i)=*((char*)n->ptr+i+8);
 	}
 }
+#endif
