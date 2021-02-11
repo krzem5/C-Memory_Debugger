@@ -10,6 +10,7 @@
 #include <stdint.h>
 #define WARN_MEMCPY_TO_UNKNOWN 1
 #define WARN_MEMCPY_FROM_UNKNOWN 1
+#define OVERRIDE_RETURN 0
 #define assert(ex) \
 	do{ \
 		if (!(ex)){ \
@@ -17,6 +18,7 @@
 			raise(SIGABRT); \
 		} \
 	} while (0)
+#if OVERRIDE_RETURN
 #define _return_0() \
 	do{ \
 		_mem_check_allocated_(__FILE__,__LINE__,__func__); \
@@ -27,6 +29,7 @@
 		_mem_check_allocated_(__FILE__,__LINE__,__func__); \
 		return (r); \
 	} while(0)
+#endif
 
 
 
@@ -559,6 +562,7 @@ void _mem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const ch
 #define free(p) _mem_free_((p),__FILE__,__LINE__,__func__)
 #define mem_trace(p) _mem_trace_((p),#p,__FILE__,__LINE__,__func__)
 #define mem_check_allocated() _mem_check_allocated_(__FILE__,__LINE__,__func__)
+#if OVERRIDE_RETURN
 #define _concat(a,b) a##b
 #define _arg_c_l(...) _,__VA_ARGS__
 #define _arg_c_exp(x) x
@@ -567,6 +571,7 @@ void _mem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const ch
 #define _arg_c(...)  _arg_c_exp_va(_arg_c_l(__VA_ARGS__))
 #define _ret_c(t,...) _concat(_return_,t)(__VA_ARGS__)
 #define return(...) _ret_c(_arg_c(__VA_ARGS__),__VA_ARGS__)
+#endif
 #else
 #include <stdlib.h>
 #define mem_trace(p)
