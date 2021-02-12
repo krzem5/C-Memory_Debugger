@@ -102,7 +102,7 @@ void _dump(void* s,size_t sz){
 				break;
 			}
 			unsigned char c=*((unsigned char*)s+i+j);
-			if (c>0x1f&&c!=0x7f){
+			if (c>0x1f&&c<0x7f){
 				printf("%c  ",(char)c);
 			}
 			else{
