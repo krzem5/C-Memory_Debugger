@@ -12,6 +12,7 @@
 #define WARN_MEMCPY_FROM_UNKNOWN 1
 #define WARN_MEMCPY_SAME_POINTER 1
 #define OVERRIDE_RETURN 1
+#define OVERRIDE_LIBC 1
 #if OVERRIDE_RETURN
 #define _return_0() \
 	do{ \
@@ -55,11 +56,19 @@ void _mem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const ch
 
 
 
+#if OVERRIDE_LIBC
 #define malloc(sz) _mem_malloc_((sz),__FILE__,__LINE__,__func__)
 #define calloc(ln,sz) _mem_calloc_((ln),(sz),__FILE__,__LINE__,__func__)
 #define realloc(s,sz) _mem_realloc_((s),(sz),__FILE__,__LINE__,__func__)
 #define memcpy(o,s,sz) _mem_memcpy_((o),(s),(sz),__FILE__,__LINE__,__func__)
 #define free(p) _mem_free_((p),__FILE__,__LINE__,__func__)
+#else
+#define malloc2(sz) _mem_malloc_((sz),__FILE__,__LINE__,__func__)
+#define calloc2(ln,sz) _mem_calloc_((ln),(sz),__FILE__,__LINE__,__func__)
+#define realloc2(s,sz) _mem_realloc_((s),(sz),__FILE__,__LINE__,__func__)
+#define memcpy2(o,s,sz) _mem_memcpy_((o),(s),(sz),__FILE__,__LINE__,__func__)
+#define free2(p) _mem_free_((p),__FILE__,__LINE__,__func__)
+#endif
 #define mem_trace(p) _mem_trace_((p),#p,__FILE__,__LINE__,__func__)
 #define mem_check_allocated() _mem_check_allocated_(__FILE__,__LINE__,__func__)
 #if OVERRIDE_RETURN
